@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+data/docker.pid
+data/docker.aptgetupdate
+.DS_Store
 # C extensions
 *.so
 

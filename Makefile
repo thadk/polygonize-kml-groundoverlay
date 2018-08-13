@@ -5,6 +5,10 @@
 # := assignment only gets run once at the beginning of everything
 # = assignment gets run each time (but can cause an infinite loop)
 
+.DEFAULT_GOAL := all
+
+all: data/geojson/combined_smooth_1pc.geojson
+
 #################
 # DOWNLOAD DATA #
 #################
@@ -32,7 +36,7 @@ data/shp/ne_10m_admin_0_countries.shp: data/gz/ne_10m_admin_0_countries.zip
 # CONVERT RASTER DATA TO VECTOR  #
 #######################
 
-DOCKERID := $(shell cat data/docker.pid) #"98aa123a0d43"
+DOCKERID= $(shell cat data/docker.pid) #"98aa123a0d43"
 
 data/docker.pid:
 	mkdir -p $(dir $@)
@@ -43,40 +47,29 @@ data/docker.pid:
 	#
 	#On DockerHub, thadk/qgis-desktop:2.8.9a is a stable, official old build of kartoza/qgis-desktop:2.8 which has since broken.
 	@echo "Docker was freshly started, you may need to reinitiate the process"
-	docker run --detach  -e DISPLAY=192.168.0.110:0 -i -t \
+	docker run --detach -i -t \
 	 -v $$(pwd)/rasterScripts/.config:/root/.config \
-	 -v $$(pwd):/opt/data  /bin/bash > $@
+	 -v $$(pwd):/opt/data thadk/qgis-desktop:2.8.9a /bin/bash > $@
 
 data/docker.aptgetupdate:
 	@echo "Trying to run apt-get for java: Docker was freshly started, you may need to reinitiate the process"
 	mkdir -p $(dir $@)
 	docker exec -i -t $(DOCKERID) apt-get update
+	# imagemagick is used to make images monochrome before polygonize
 	docker exec -i -t $(DOCKERID) apt-get install imagemagick -y
+	#xvfb is used to have headless WorldFileTool
 	docker exec -i -t $(DOCKERID) apt-get install xvfb -y
+	#Java is needed for WorldFileTool
 	docker exec -i -t $(DOCKERID) apt-get install openjdk-7-jre -y
-	#Turn off QGIS initial tooltip so QGIS headless doesn't hang endlessly
-	# (remember to update this preference if you change versions of QGIS):
-	docker exec -i -t $(DOCKERID) mkdir -p /root/.config/QGIS/
-	docker exec -i -t $(DOCKERID) sh -c 'printf "[Qgis]\nshowTips208=false">/root/.config/QGIS/QGIS2.conf'
-	
 	touch $@
 
-	# docker exec -i -t $(DOCKERID) gm convert \
-	#  /opt/data/$(dir $<)$*.png  -monochrome /opt/data/$(dir $<)$*-mono.png
-
-#A series of rules to generate a list of KML files from a folder and to append them into *_basic.shp.
-#.PHONEY: all-kml-shp-merges
-#kmllist := $(notdir $(shell ls data/kml/*.kml 2>/dev/null))
-#kmllist_shp_merges := $(addprefix data/shp/,$(addsuffix _basic.shp,$(basename ${kmllist})))
-#all-kml-shp-merges: data/docker.pid data/docker.aptgetupdate  ${kmllist_shp_merges} ; echo "$@ success"
-
-#TODO learn these tricks: http://stackoverflow.com/questions/10022872/reuse-percent-sign-in-makefile-prerequesite-as-subdirectory-name
-# tex := $(shell find -iname '*.tex')
-#
-# # Make targets out of them
-# PDFS := $(notdir $(tex:%.tex=%.pdf))
-# # specify search folder
-# VPATH := $(dir $(tex))
+# A series of rules to generate a list of KML files from data/kml/* folder
+#  and then to append them into data/shp/*_attrdissolve.shp.
+# also, require docker to be running and updated.
+.PHONEY: all-kml-shp
+kmllist := $(notdir $(shell ls data/kml/*.kml 2>/dev/null))
+kmllist_shp := $(addprefix data/shp/,$(addsuffix _attrdissolve.shp,$(basename ${kmllist})))
+all-kml-shp: data/docker.pid data/docker.aptgetupdate  ${kmllist_shp} ; echo "$@ success"
 
 # placeholder file to represent tasks needed to prepare your folder of KML files with GroundOverlay's.
 # I believe these KMLs need to be unzipped from KMZ zip format.
@@ -117,7 +110,7 @@ data/shp/%_basic.shp: data/kml/KmlFolder.placeholder data/docker.pid data/docker
 # You may need to provide an appropriate prj file as the worldfiletool will not generate one.
 # Uses: geodata/grass /data/data/grassdb/here/PERMANENT
 # Applies a "snakes" GRASS simplification on the perimeter to make it look friendlier.
-data/shp/%_smooth.shp:
+data/shp/%_smooth.shp: data/shp/%_basic.shp
 	mkdir -p $(dir $@)
 	cp vectorScripts/default.prj $(dir $@)$(notdir $*)_basic.prj
 	docker run -it --rm -e TARGET_GRASS_OUT=$@ -e TARGET_GRASS_SHP=$(dir $@)$(notdir $*)_basic.shp \
@@ -155,7 +148,7 @@ data/shp/%_attrdissolve.shp: data/shp/%_smooth_small.shp
 .PRECIOUS: data/shp/%.shp
 
 #summarize the output into geojson
-data/geojson/combined_smooth_1pc.json:
+data/geojson/combined_smooth_1pc.geojson: all-kml-shp
 	mkdir -p $(dir $@)
 	mapshaper -i data/shp/*_attrdissolve.shp combine-files \
 	 -merge-layers \
@@ -169,6 +162,9 @@ clean: DATESHORT:=$(shell date +%Y-%m-%d-%H-%M-%S)
 clean: JUNKBIN=~~/Downloads/VMs
 clean:
 	mkdir -p ${JUNKBIN}
+	-docker stop $(DOCKERID)
+	-docker rm $(DOCKERID)
+	-rm -rf data/docker.pid data/docker.aptgetupdate
 	-mv data/shp ${JUNKBIN}/shp-$(DATESHORT)
 	-mv data/geojson ${JUNKBIN}/geojson-$(DATESHORT)
 	-mv data/csv ${JUNKBIN}/csv-$(DATESHORT)
