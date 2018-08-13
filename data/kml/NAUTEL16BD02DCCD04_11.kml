@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Folder><name>Coverage of Morogoro Station</name>
+<GroundOverlay><name>Coverage</name>
+<description>100.000 MHz | 
+2951.21 W ERPI | 
+134.12 dB System Gain</description>
+<color>88ffffff</color><Icon><href>morogoro.png</href>
+<viewBoundScale>0.75</viewBoundScale></Icon><LatLonBox>
+<north>-2.320059</north>
+<south>-11.31328</south>
+<east> 42.19529</east>
+<west> 33.13805</west>
+</LatLonBox></GroundOverlay>
+<Placemark><name>Morogoro station</name>
+<Point><coordinates> 37.666667,-6.816667,0
+</coordinates></Point></Placemark></Folder></kml>

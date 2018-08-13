@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Folder><name>Coverage of Zanzibar station</name>
+<GroundOverlay><name>Coverage</name>
+<description>100.500 MHz | 
+2951.21 W ERPI | 
+134.25 dB System Gain</description>
+<color>88ffffff</color><Icon><href>NAUTEL16BD02DCCD04_12.png</href>
+<viewBoundScale>0.75</viewBoundScale></Icon><LatLonBox>
+<north>-1.658948</north>
+<south>-10.65216</south>
+<east> 43.75324</east>
+<west> 34.70787</west>
+</LatLonBox></GroundOverlay>
+<Placemark><name>Zanzibar station</name>
+<Point><coordinates> 39.230556,-6.155556,0
+</coordinates></Point></Placemark></Folder></kml>
