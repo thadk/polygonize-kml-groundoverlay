@@ -14,5 +14,7 @@ Use `make` to generate the summary geojson file from all kml files in the `data\
 * Makes use of `geodata/grass` and `kartoza/qgis-desktop` Docker images for GRASS and GDAL libraries.
 * Also makes use of WorldFileTool.jar, <a href="https://gis.stackexchange.com/a/93174/4911">more
   details</a>.
+* Thanks to [Farm Radio International](http://farmradio.org/) support to explore the toolchain.
+
 
 GRASS is needed to clean the polygons so they can be union'd or intersected.
