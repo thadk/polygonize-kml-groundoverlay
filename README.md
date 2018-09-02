@@ -3,6 +3,14 @@ Makefile workflow: takes in a folder of KML files with flat GroundOverlay images
 
 Useful for output from radio reach tools like RadioMobile, Nautel, SPLAT or CloudRF which generate this kind of KML.
 
+Input (screenshot of layer from Google Earth)
+![image](https://user-images.githubusercontent.com/283343/44951839-123b8800-ae78-11e8-8352-3e7ff5b83695.png)
+
+output (GeoJSON polgons)
+
+![image](https://user-images.githubusercontent.com/283343/44951843-21bad100-ae78-11e8-9d85-428c4cba7513.png)
+
+
 ## Prerequisites
 * Docker
 * Mapshaper (`npm install -g mapshaper`)
